@@ -1,0 +1,29 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: nomsydb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secretpassword
+    volumes:
+      - mongo_data:/data/db
+
+  # Lightweight Web UI for DB (Optional but helpful)
+  # mongo-express:
+  #   image: mongo-express
+  #   container_name: trello-db-ui
+  #   restart: always
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: secretpassword
+  #     ME_CONFIG_MONGODB_URL: mongodb://admin:secretpassword@mongodb:27017/
+  #   depends_on:
+  #     - mongodb
+
+volumes:
+  mongo_data:
