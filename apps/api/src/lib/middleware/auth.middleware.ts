@@ -1,0 +1,21 @@
+import type { Request, Response, NextFunction } from "express";
+import { verifyToken } from "../jwt.js";
+import { AppError } from "../errors.js";
+
+export type AuthUser = { userId: string };
+
+export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    next(new AppError("Unauthorized", 401, "UNAUTHORIZED"));
+    return;
+  }
+  const token = authHeader.slice(7);
+  try {
+    const decoded = verifyToken(token);
+    (req as Request & { user: AuthUser }).user = { userId: decoded.userId };
+    next();
+  } catch {
+    next(new AppError("Invalid or expired token", 401, "UNAUTHORIZED"));
+  }
+}
