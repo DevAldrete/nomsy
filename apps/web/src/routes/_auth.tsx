@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_auth")({
 
 function AuthLayout() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-12" style={{ background: "var(--bg)" }}>
       <Outlet />
     </div>
   );

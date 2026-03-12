@@ -19,26 +19,39 @@ export function WeekView() {
   })();
 
   if (loading) {
-    return <p className="text-gray-600">Loading calendar…</p>;
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="font-display text-lg" style={{ color: "var(--text-muted)" }}>
+          Loading calendar…
+        </p>
+      </div>
+    );
   }
 
   const getEntriesFor = (date: Date, mealType: string) => {
     const dateStr = date.toISOString().slice(0, 10);
-    return entries.filter(
-      (e) => e.date.startsWith(dateStr) && e.mealType === mealType
-    );
+    return entries.filter((e) => e.date.startsWith(dateStr) && e.mealType === mealType);
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">This week</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg">
+    <div className="animate-in opacity-0 space-y-6">
+      <div>
+        <h2 className="font-display text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+          This week
+        </h2>
+        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+          Add recipes to each slot. Tap a meal to remove it.
+        </p>
+      </div>
+      <div className="overflow-x-auto rounded-[var(--radius-lg)] border shadow-[var(--shadow-card)]" style={{ borderColor: "var(--border)" }}>
+        <table className="min-w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Day</th>
+            <tr style={{ background: "var(--bg-subtle)" }}>
+              <th className="sticky left-0 z-10 min-w-[120px] border-b border-r px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                Day
+              </th>
               {MEAL_TYPES.map((mt) => (
-                <th key={mt} className="px-3 py-2 text-left text-sm font-medium text-gray-700 capitalize">
+                <th key={mt} className="min-w-[100px] border-b px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider sm:min-w-[120px]" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
                   {mt}
                 </th>
               ))}
@@ -46,8 +59,8 @@ export function WeekView() {
           </thead>
           <tbody>
             {weekDays.map((day) => (
-              <tr key={day.toISOString()} className="border-t border-gray-200">
-                <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+              <tr key={day.toISOString()} className="border-b transition-colors hover:bg-[var(--surface-hover)]/50" style={{ borderColor: "var(--border)" }}>
+                <td className="sticky left-0 z-10 border-r bg-[var(--surface)] px-4 py-3 text-sm font-medium" style={{ borderColor: "var(--border)", color: "var(--text)" }}>
                   {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                 </td>
                 {MEAL_TYPES.map((mealType) => {
@@ -55,21 +68,22 @@ export function WeekView() {
                   const dateStr = day.toISOString().slice(0, 10);
                   const isAdding = addingSlot?.date === dateStr && addingSlot?.mealType === mealType;
                   return (
-                    <td key={mealType} className="px-3 py-2 align-top">
-                      <div className="min-h-[60px] space-y-1">
+                    <td key={mealType} className="align-top px-3 py-2" style={{ borderColor: "var(--border)" }}>
+                      <div className="min-h-[72px] space-y-1.5">
                         {slotEntries.map((e) => (
                           <div
                             key={e._id}
-                            className="flex items-center justify-between gap-1 rounded bg-blue-50 px-2 py-1 text-sm"
+                            className="group flex items-center justify-between gap-2 rounded-[var(--radius)] px-2.5 py-1.5 text-sm transition-colors"
+                            style={{ background: "var(--accent-soft)" }}
                           >
-                            <span className="truncate">
+                            <span className="truncate font-medium" style={{ color: "var(--text)" }}>
                               {typeof e.recipeId === "object" && e.recipeId?.title ? e.recipeId.title : "Recipe"}
                             </span>
                             <button
                               type="button"
                               onClick={() => removeEntry(e._id)}
-                              className="text-red-600 hover:underline"
-                              aria-label="Remove"
+                              className="shrink-0 rounded p-0.5 text-[var(--text-faint)] transition-colors hover:bg-[var(--accent-muted)]/50 hover:text-[var(--error)]"
+                              aria-label="Remove from calendar"
                             >
                               ×
                             </button>
@@ -77,7 +91,8 @@ export function WeekView() {
                         ))}
                         {isAdding ? (
                           <select
-                            className="block w-full text-sm border border-gray-300 rounded px-2 py-1"
+                            className="w-full rounded-[var(--radius)] border bg-[var(--surface)] px-2 py-1.5 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                            style={{ borderColor: "var(--border)", color: "var(--text)" }}
                             onChange={(ev) => {
                               const id = ev.target.value;
                               if (id) {
@@ -99,7 +114,8 @@ export function WeekView() {
                           <button
                             type="button"
                             onClick={() => setAddingSlot({ date: dateStr, mealType })}
-                            className="text-xs text-blue-600 hover:underline"
+                            className="w-full rounded-[var(--radius)] border border-dashed px-2 py-2 text-xs font-medium transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/50"
+                            style={{ borderColor: "var(--border)", color: "var(--text-faint)" }}
                           >
                             + Add
                           </button>

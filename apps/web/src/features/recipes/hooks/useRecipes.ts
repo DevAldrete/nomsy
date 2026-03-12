@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 
 export function useRecipes() {
   const { getToken } = useAuth();
-  const [recipes, setRecipes] = useState<{ _id: string; title: string }[]>([]);
+  const [recipes, setRecipes] = useState<{ _id: string; title: string; description?: string; prepTimeMinutes?: number; cookTimeMinutes?: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export function useRecipes() {
       setLoading(false);
       return;
     }
-    api<{ _id: string; title: string }[]>("/recipes", { token })
+    api<{ _id: string; title: string; description?: string; prepTimeMinutes?: number; cookTimeMinutes?: number }[]>("/recipes", { token })
       .then(setRecipes)
       .catch(() => setRecipes([]))
       .finally(() => setLoading(false));

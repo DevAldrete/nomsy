@@ -23,11 +23,16 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-sm">
-      <h2 className="text-xl font-semibold text-gray-900">Register</h2>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+    <div className="w-full max-w-[380px] animate-in opacity-0">
+      <h1 className="font-display text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+        Create an account
+      </h1>
+      <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        Start planning your meals in one place.
+      </p>
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
         <div>
-          <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="register-email" className="block text-sm font-medium" style={{ color: "var(--text)" }}>
             Email
           </label>
           <input
@@ -36,11 +41,14 @@ export function RegisterForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            autoComplete="email"
+            className="mt-1.5 block w-full rounded-[var(--radius)] border bg-[var(--surface)] px-4 py-2.5 text-[var(--text)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            style={{ borderColor: "var(--border)" }}
+            placeholder="you@example.com"
           />
         </div>
         <div>
-          <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="register-password" className="block text-sm font-medium" style={{ color: "var(--text)" }}>
             Password
           </label>
           <input
@@ -49,20 +57,33 @@ export function RegisterForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            autoComplete="new-password"
+            className="mt-1.5 block w-full rounded-[var(--radius)] border bg-[var(--surface)] px-4 py-2.5 text-[var(--text)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            style={{ borderColor: "var(--border)" }}
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm font-medium" style={{ color: "var(--error)" }}>
+            {error}
+          </p>
+        )}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+          className="w-full rounded-full py-3 text-base font-medium transition-opacity disabled:opacity-60"
+          style={{ background: "var(--accent)", color: "white" }}
         >
-          {loading ? "Creating account…" : "Register"}
+          {loading ? "Creating account…" : "Sign up"}
         </button>
       </form>
-      <Link to="/" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
-        Back
+      <p className="mt-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+        Already have an account?{" "}
+        <Link to="/login" className="font-medium underline underline-offset-2" style={{ color: "var(--accent)" }}>
+          Log in
+        </Link>
+      </p>
+      <Link to="/" className="mt-4 block text-center text-sm" style={{ color: "var(--text-faint)" }}>
+        ← Back to home
       </Link>
     </div>
   );

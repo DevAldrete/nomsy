@@ -12,10 +12,11 @@ export const Route = createFileRoute("/calendar")({
 
 function CalendarPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <WeekView />
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
+      <WeekView />
+      <p className="mt-8 text-sm" style={{ color: "var(--text-faint)" }}>
+        Week runs Monday–Sunday. Add recipes from your list to plan meals.
+      </p>
     </div>
   );
 }
