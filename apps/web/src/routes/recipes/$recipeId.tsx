@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api-client";
-import { Link } from "@tanstack/react-router";
 import { RequireAuth } from "../../components/RequireAuth";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 
 export const Route = createFileRoute("/recipes/$recipeId")({
   component: () => (
@@ -24,9 +24,12 @@ type RecipeDetail = {
 
 function RecipeDetailPage() {
   const { recipeId } = Route.useParams();
+  const navigate = useNavigate();
+  const { getToken } = useAuth();
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     api<RecipeDetail>(`/recipes/${recipeId}`)
@@ -56,17 +59,55 @@ function RecipeDetailPage() {
       </div>
     );
   }
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this recipe? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      const token = getToken();
+      if (!token) throw new Error("Not authenticated");
+      await api(`/recipes/${recipeId}`, { method: "DELETE", token });
+      navigate({ to: "/recipes" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!recipe) return null;
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-12">
+      <div className="animate-in opacity-0 flex items-center justify-between gap-4">
+        <div>
+          <Link to="/recipes" className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+            ← Recipes
+          </Link>
+          <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            {recipe.title}
+          </h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to="/recipes/$recipeId/edit"
+            params={{ recipeId }}
+            className="rounded-lg border px-3 py-2 text-sm font-medium"
+            style={{ borderColor: "var(--border)", color: "var(--text)" }}
+          >
+            Edit
+          </Link>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-lg border px-3 py-2 text-sm font-medium"
+            style={{ borderColor: "var(--error)", color: "var(--error)" }}
+          >
+            {deleting ? "Deleting…" : "Delete recipe"}
+          </button>
+        </div>
+      </div>
       <div className="animate-in opacity-0">
-        <Link to="/recipes" className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
-          ← Recipes
-        </Link>
-        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-          {recipe.title}
-        </h1>
         {(recipe.prepTimeMinutes != null || recipe.cookTimeMinutes != null) && (
           <p className="mt-2 text-sm" style={{ color: "var(--text-faint)" }}>
             {[recipe.prepTimeMinutes != null && `Prep ${recipe.prepTimeMinutes} min`, recipe.cookTimeMinutes != null && `Cook ${recipe.cookTimeMinutes} min`].filter(Boolean).join(" · ")}

@@ -10,13 +10,17 @@ type CalendarEntry = {
   mealType: string;
 };
 
-function getWeekRange(date: Date): { start: string; end: string } {
+function getMondayOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   const monday = new Date(d);
   monday.setDate(diff);
   monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function getWeekRange(monday: Date): { start: string; end: string } {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
@@ -26,12 +30,32 @@ function getWeekRange(date: Date): { start: string; end: string } {
   };
 }
 
-export function useCalendar(weekStart?: Date) {
+export function useCalendar() {
   const { getToken } = useAuth();
   const [entries, setEntries] = useState<CalendarEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const start = weekStart ?? new Date();
-  const { start: startStr, end: endStr } = getWeekRange(start);
+  const [selectedWeekMonday, setSelectedWeekMonday] = useState<Date>(() => getMondayOfWeek(new Date()));
+  const { start: startStr, end: endStr } = getWeekRange(selectedWeekMonday);
+
+  const goToPreviousWeek = useCallback(() => {
+    setSelectedWeekMonday((m) => {
+      const next = new Date(m);
+      next.setDate(m.getDate() - 7);
+      return next;
+    });
+  }, []);
+
+  const goToNextWeek = useCallback(() => {
+    setSelectedWeekMonday((m) => {
+      const next = new Date(m);
+      next.setDate(m.getDate() + 7);
+      return next;
+    });
+  }, []);
+
+  const goToWeekContaining = useCallback((date: Date) => {
+    setSelectedWeekMonday(getMondayOfWeek(date));
+  }, []);
 
   const refetch = useCallback(() => {
     const token = getToken();
@@ -74,5 +98,16 @@ export function useCalendar(weekStart?: Date) {
     [getToken, refetch]
   );
 
-  return { entries, loading, addEntry, removeEntry, weekStart: startStr, weekEnd: endStr };
+  return {
+    entries,
+    loading,
+    addEntry,
+    removeEntry,
+    weekStart: startStr,
+    weekEnd: endStr,
+    selectedWeekMonday,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToWeekContaining,
+  };
 }

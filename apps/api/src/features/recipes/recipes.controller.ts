@@ -19,6 +19,12 @@ export async function getById(req: Request, res: Response): Promise<void> {
   res.json(recipe);
 }
 
+export async function update(req: Request, res: Response): Promise<void> {
+  const { userId } = (req as Request & { user: AuthUser }).user;
+  const recipe = await recipesService.update(req.params.id, userId, req.body);
+  res.json(recipe);
+}
+
 export async function deleteRecipe(req: Request, res: Response): Promise<void> {
   const { userId } = (req as Request & { user: AuthUser }).user;
   await recipesService.delete(req.params.id, userId);

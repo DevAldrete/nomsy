@@ -4,10 +4,31 @@ import { useRecipes } from "../../recipes/hooks/useRecipes";
 
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"] as const;
 
+function formatWeekLabel(monday: Date): string {
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const sameMonth = monday.getMonth() === sunday.getMonth();
+  if (sameMonth) {
+    return `Week of ${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${sunday.getDate()}, ${sunday.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+  }
+  return `${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${sunday.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 export function WeekView() {
-  const { entries, loading, addEntry, removeEntry, weekStart } = useCalendar();
+  const {
+    entries,
+    loading,
+    addEntry,
+    removeEntry,
+    weekStart,
+    selectedWeekMonday,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToWeekContaining,
+  } = useCalendar();
   const { recipes } = useRecipes();
   const [addingSlot, setAddingSlot] = useState<{ date: string; mealType: string } | null>(null);
+  const [goToDateValue, setGoToDateValue] = useState("");
 
   const weekDays = (() => {
     const start = new Date(weekStart);
@@ -33,15 +54,66 @@ export function WeekView() {
     return entries.filter((e) => e.date.startsWith(dateStr) && e.mealType === mealType);
   };
 
+  const handleGoToDate = () => {
+    const parsed = goToDateValue ? new Date(goToDateValue) : null;
+    if (parsed && !Number.isNaN(parsed.getTime())) {
+      goToWeekContaining(parsed);
+      setGoToDateValue("");
+    }
+  };
+
   return (
     <div className="animate-in opacity-0 space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-          This week
-        </h2>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          Add recipes to each slot. Tap a meal to remove it.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            {formatWeekLabel(selectedWeekMonday)}
+          </h2>
+          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            Add recipes to each slot. Tap a meal to remove it.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-[var(--radius)] border" style={{ borderColor: "var(--border)" }}>
+            <button
+              type="button"
+              onClick={goToPreviousWeek}
+              className="px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-hover)]"
+              style={{ color: "var(--text)" }}
+              aria-label="Previous week"
+            >
+              ← Prev
+            </button>
+            <button
+              type="button"
+              onClick={goToNextWeek}
+              className="border-l px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-hover)]"
+              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              aria-label="Next week"
+            >
+              Next →
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={goToDateValue}
+              onChange={(e) => setGoToDateValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGoToDate()}
+              className="rounded-[var(--radius)] border bg-[var(--surface)] px-3 py-2 text-sm"
+              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              aria-label="Go to date"
+            />
+            <button
+              type="button"
+              onClick={handleGoToDate}
+              className="rounded-[var(--radius)] border px-3 py-2 text-sm font-medium"
+              style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+            >
+              Go
+            </button>
+          </div>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-[var(--radius-lg)] border shadow-[var(--shadow-card)]" style={{ borderColor: "var(--border)" }}>
         <table className="min-w-full border-collapse">

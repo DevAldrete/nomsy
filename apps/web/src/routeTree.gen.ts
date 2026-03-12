@@ -13,9 +13,11 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
+import { Route as RecipesNewRouteImport } from './routes/recipes/new'
 import { Route as RecipesRecipeIdRouteImport } from './routes/recipes/$recipeId'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes/$recipeId.edit'
 
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
@@ -36,6 +38,11 @@ const RecipesIndexRoute = RecipesIndexRouteImport.update({
   path: '/recipes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecipesNewRoute = RecipesNewRouteImport.update({
+  id: '/recipes/new',
+  path: '/recipes/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecipesRecipeIdRoute = RecipesRecipeIdRouteImport.update({
   id: '/recipes/$recipeId',
   path: '/recipes/$recipeId',
@@ -51,22 +58,31 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
+const RecipesRecipeIdEditRoute = RecipesRecipeIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => RecipesRecipeIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
-  '/recipes/$recipeId': typeof RecipesRecipeIdRoute
+  '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
+  '/recipes/new': typeof RecipesNewRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
-  '/recipes/$recipeId': typeof RecipesRecipeIdRoute
+  '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
+  '/recipes/new': typeof RecipesNewRoute
   '/recipes': typeof RecipesIndexRoute
+  '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -75,8 +91,10 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
-  '/recipes/$recipeId': typeof RecipesRecipeIdRoute
+  '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
+  '/recipes/new': typeof RecipesNewRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,7 +104,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/recipes/$recipeId'
+    | '/recipes/new'
     | '/recipes/'
+    | '/recipes/$recipeId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -94,7 +114,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/recipes/$recipeId'
+    | '/recipes/new'
     | '/recipes'
+    | '/recipes/$recipeId/edit'
   id:
     | '__root__'
     | '/'
@@ -103,14 +125,17 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_auth/register'
     | '/recipes/$recipeId'
+    | '/recipes/new'
     | '/recipes/'
+    | '/recipes/$recipeId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRoute
-  RecipesRecipeIdRoute: typeof RecipesRecipeIdRoute
+  RecipesRecipeIdRoute: typeof RecipesRecipeIdRouteWithChildren
+  RecipesNewRoute: typeof RecipesNewRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
 }
 
@@ -144,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recipes/new': {
+      id: '/recipes/new'
+      path: '/recipes/new'
+      fullPath: '/recipes/new'
+      preLoaderRoute: typeof RecipesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recipes/$recipeId': {
       id: '/recipes/$recipeId'
       path: '/recipes/$recipeId'
@@ -165,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/recipes/$recipeId/edit': {
+      id: '/recipes/$recipeId/edit'
+      path: '/edit'
+      fullPath: '/recipes/$recipeId/edit'
+      preLoaderRoute: typeof RecipesRecipeIdEditRouteImport
+      parentRoute: typeof RecipesRecipeIdRoute
+    }
   }
 }
 
@@ -180,11 +219,24 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface RecipesRecipeIdRouteChildren {
+  RecipesRecipeIdEditRoute: typeof RecipesRecipeIdEditRoute
+}
+
+const RecipesRecipeIdRouteChildren: RecipesRecipeIdRouteChildren = {
+  RecipesRecipeIdEditRoute: RecipesRecipeIdEditRoute,
+}
+
+const RecipesRecipeIdRouteWithChildren = RecipesRecipeIdRoute._addFileChildren(
+  RecipesRecipeIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRoute,
-  RecipesRecipeIdRoute: RecipesRecipeIdRoute,
+  RecipesRecipeIdRoute: RecipesRecipeIdRouteWithChildren,
+  RecipesNewRoute: RecipesNewRoute,
   RecipesIndexRoute: RecipesIndexRoute,
 }
 export const routeTree = rootRouteImport

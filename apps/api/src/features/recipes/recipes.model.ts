@@ -14,6 +14,7 @@ const recipeSchema = new mongoose.Schema(
       },
     ],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    publishedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

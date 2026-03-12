@@ -21,9 +21,10 @@ beforeAll(async () => {
   const registerRes = await fetch(`${baseUrl}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "recipes-test@example.com", password: "password123" }),
+    body: JSON.stringify({ email: `recipes-test-${Date.now()}@example.com`, password: "password123" }),
   });
-  const data = (await registerRes.json()) as { token: string };
+  const data = (await registerRes.json()) as { token?: string };
+  if (!data.token) throw new Error("Register failed: no token");
   token = data.token;
 });
 
@@ -41,6 +42,61 @@ test("POST /api/recipes creates recipe and returns 201", async () => {
   const recipe = (await res.json()) as { _id: string; title: string };
   expect(recipe.title).toBe("Test Recipe");
   expect(recipe._id).toBeDefined();
+});
+
+test("POST /api/recipes with ingredients by name creates recipe with ingredients", async () => {
+  const res = await fetch(`${baseUrl}/api/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      title: "Recipe With Flour",
+      ingredients: [{ quantity: 2, unit: "cups", name: "flour" }],
+    }),
+  });
+  expect(res.status).toBe(201);
+  const recipe = (await res.json()) as { _id: string; ingredients?: unknown[] };
+  expect(recipe.ingredients).toBeDefined();
+  expect(Array.isArray(recipe.ingredients)).toBe(true);
+  expect(recipe.ingredients!.length).toBe(1);
+});
+
+test("PATCH /api/recipes/:id updates recipe", async () => {
+  const createRes = await fetch(`${baseUrl}/api/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title: "Original Title", prepTimeMinutes: 0, cookTimeMinutes: 0 }),
+  });
+  const created = (await createRes.json()) as { _id: string };
+  const res = await fetch(`${baseUrl}/api/recipes/${created._id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title: "Updated Title" }),
+  });
+  expect(res.status).toBe(200);
+  const updated = (await res.json()) as { title: string };
+  expect(updated.title).toBe("Updated Title");
+});
+
+test("PATCH /api/recipes/:id with other user returns 404", async () => {
+  const createRes = await fetch(`${baseUrl}/api/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title: "Mine", prepTimeMinutes: 0, cookTimeMinutes: 0 }),
+  });
+  const created = (await createRes.json()) as { _id: string };
+  const otherRes = await fetch(`${baseUrl}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: `other-${Date.now()}@example.com`, password: "password123" }),
+  });
+  const otherData = (await otherRes.json()) as { token?: string };
+  const otherToken = otherData.token!;
+  const res = await fetch(`${baseUrl}/api/recipes/${created._id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${otherToken}` },
+    body: JSON.stringify({ title: "Hacked" }),
+  });
+  expect(res.status).toBe(404);
 });
 
 test("GET /api/recipes returns list for user", async () => {

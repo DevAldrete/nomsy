@@ -27,13 +27,22 @@ function RecipesListPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
-      <div className="animate-in opacity-0">
-        <h1 className="font-display text-3xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-          Recipes
-        </h1>
-        <p className="mt-1 text-[var(--text-muted)]">
-          Your saved recipes. Tap one to view details or add it to your calendar.
-        </p>
+      <div className="animate-in opacity-0 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            Recipes
+          </h1>
+          <p className="mt-1 text-[var(--text-muted)]">
+            Your saved recipes. Tap one to view details or add it to your calendar.
+          </p>
+        </div>
+        <Link
+          to="/recipes/new"
+          className="shrink-0 rounded-lg border px-3 py-2 text-sm font-medium"
+          style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+        >
+          New recipe
+        </Link>
       </div>
       <div className="mt-8">
         {recipes.length === 0 ? (
