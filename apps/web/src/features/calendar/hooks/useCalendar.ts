@@ -23,10 +23,11 @@ function getMondayOfWeek(date: Date): Date {
 function getWeekRange(monday: Date): { start: string; end: string } {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  // Using just the date part ensures we cover the whole day in UTC
+  // especially when the API creates dates from YYYY-MM-DD strings at T00:00:00Z
   return {
-    start: monday.toISOString(),
-    end: sunday.toISOString(),
+    start: monday.toISOString().slice(0, 10),
+    end: sunday.toISOString().slice(0, 10) + "T23:59:59.999Z",
   };
 }
 
@@ -34,7 +35,9 @@ export function useCalendar() {
   const { getToken } = useAuth();
   const [entries, setEntries] = useState<CalendarEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWeekMonday, setSelectedWeekMonday] = useState<Date>(() => getMondayOfWeek(new Date()));
+  const [selectedWeekMonday, setSelectedWeekMonday] = useState<Date>(() =>
+    getMondayOfWeek(new Date()),
+  );
   const { start: startStr, end: endStr } = getWeekRange(selectedWeekMonday);
 
   const goToPreviousWeek = useCallback(() => {
@@ -64,7 +67,10 @@ export function useCalendar() {
       return;
     }
     setLoading(true);
-    api<CalendarEntry[]>(`/calendar/week?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`, { token })
+    api<CalendarEntry[]>(
+      `/calendar/week?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`,
+      { token },
+    )
       .then(setEntries)
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
@@ -85,7 +91,7 @@ export function useCalendar() {
       });
       refetch();
     },
-    [getToken, refetch]
+    [getToken, refetch],
   );
 
   const removeEntry = useCallback(
@@ -95,7 +101,7 @@ export function useCalendar() {
       await api(`/calendar/${id}`, { method: "DELETE", token });
       refetch();
     },
-    [getToken, refetch]
+    [getToken, refetch],
   );
 
   return {
