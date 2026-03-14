@@ -39,6 +39,13 @@ function RootLayout() {
                   Recipes
                 </Link>
                 <Link
+                  to="/discover"
+                  className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--bg-subtle)]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Discover
+                </Link>
+                <Link
                   to="/calendar/today"
                   className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--bg-subtle)]"
                   style={{ color: "var(--text-muted)" }}

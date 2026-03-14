@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -22,6 +23,11 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes/$recipeId.edit'
 import { Route as CalendarDayDateRouteImport } from './routes/calendar/day.$date'
 
+const DiscoverRoute = DiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -85,6 +91,7 @@ const CalendarDayDateRoute = CalendarDayDateRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRouteWithChildren
+  '/discover': typeof DiscoverRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRouteWithChildren
+  '/discover': typeof DiscoverRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/calendar'
+    | '/discover'
     | '/login'
     | '/register'
     | '/calendar/today'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/discover'
     | '/login'
     | '/register'
     | '/calendar/today'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/calendar'
+    | '/discover'
     | '/_auth/login'
     | '/_auth/register'
     | '/calendar/today'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRouteWithChildren
+  DiscoverRoute: typeof DiscoverRoute
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRouteWithChildren
   RecipesNewRoute: typeof RecipesNewRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/discover': {
+      id: '/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar': {
       id: '/calendar'
       path: '/calendar'
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRouteWithChildren,
+  DiscoverRoute: DiscoverRoute,
   RecipesRecipeIdRoute: RecipesRecipeIdRouteWithChildren,
   RecipesNewRoute: RecipesNewRoute,
   RecipesIndexRoute: RecipesIndexRoute,
