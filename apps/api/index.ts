@@ -15,7 +15,7 @@ if (!MONGO_URI) {
 }
 
 async function main() {
-  await connectDb(MONGO_URI);
+  await connectDb(MONGO_URI as string);
   app.listen(Number(PORT), () => {
     console.log(`API running on http://localhost:${PORT}`);
   });

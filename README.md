@@ -23,10 +23,97 @@ Nomsy is a situational meal recommender and calendar-based meal planner. Instead
 ## 🧠 System Architecture
 
 - **Frontend:** React + Vite + Tanstack Router + Tailwindcss
-- **Backend API:** (Insert your framework)
+- **Backend API:** Express + TypeScript
 - **AI/Parsing Service:** Standalone service for text extraction and recommendation logic.
 - **Database:** Relational schema handling Users, Recipes, Ingredients, and Calendar states.
 
 ## 🛠️ Getting Started
 
-(WIP)
+### Prerequisites
+
+- [Bun](https://bun.sh/) >= 1.0 (runtime and package manager)
+- [Node.js](https://nodejs.org/) >= 20 (for Docker/builds)
+- MongoDB (local or cloud instance)
+
+### Installation
+
+```bash
+# Install dependencies
+bun install
+
+# Start development servers (monorepo with turbo)
+bun run dev
+```
+
+### Environment Variables
+
+Create `.env` files as needed:
+
+#### apps/api/.env
+
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/nomsy
+JWT_SECRET=your-secret-key
+NODE_ENV=development
+```
+
+#### apps/web/.env (if needed)
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+### Running the Application
+
+```bash
+# Development (all apps)
+bun run dev
+
+# API only
+cd apps/api && bun run dev
+
+# Web only
+cd apps/web && bun run dev
+```
+
+### Testing
+
+```bash
+# Run all tests
+bun test
+
+# API tests
+cd apps/api && bun test
+```
+
+## 🐳 Docker
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+```
+
+## 📁 Project Structure
+
+```
+.
+├── apps/
+│   ├── api/          # Express API server
+│   └── web/          # React + Vite frontend
+├── packages/
+│   ├── ui/           # Shared UI components
+│   ├── eslint-config # ESLint configuration
+│   └── typescript-config # TypeScript configuration
+├── docs/             # Documentation and plans
+└── turbo.json        # Turborepo configuration
+```
+
+## 🧪 CI/CD
+
+GitHub Actions workflow runs on:
+
+- Push to main
+- Pull requests
+
+Jobs: Lint → Typecheck → Test → Build
