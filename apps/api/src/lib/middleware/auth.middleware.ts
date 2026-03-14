@@ -4,6 +4,12 @@ import { AppError } from "../errors.js";
 
 export type AuthUser = { userId: string };
 
+export function requireAuth(req: Request): AuthUser {
+  const user = (req as Request & { user?: AuthUser }).user;
+  if (!user) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+  return user;
+}
+
 export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
