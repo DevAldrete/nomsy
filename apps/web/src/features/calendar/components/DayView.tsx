@@ -45,6 +45,7 @@ export function DayView({ date }: DayViewProps) {
   const { entriesByMealType, loading, addEntry, removeEntry } = useDayCalendar(date);
   const { recipes } = useRecipes();
   const [addingMealType, setAddingMealType] = useState<MealType | null>(null);
+  const [showPickerForMealType, setShowPickerForMealType] = useState<MealType | null>(null);
 
   const isToday = date === getTodayDateString();
   const prevDate = addDays(date, -1);
@@ -116,6 +117,7 @@ export function DayView({ date }: DayViewProps) {
         {MEAL_TYPES.map((mealType) => {
           const entries = entriesByMealType[mealType];
           const isAdding = addingMealType === mealType;
+          const showPicker = showPickerForMealType === mealType;
           return (
             <section
               key={mealType}
@@ -145,7 +147,7 @@ export function DayView({ date }: DayViewProps) {
                     </button>
                   </div>
                 ))}
-                {isAdding ? (
+                {isAdding && showPicker ? (
                   <select
                     className="w-full rounded-[var(--radius)] border bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                     style={{ borderColor: "var(--border)", color: "var(--text)" }}
@@ -154,9 +156,13 @@ export function DayView({ date }: DayViewProps) {
                       if (id) {
                         addEntry(id, mealType);
                         setAddingMealType(null);
+                        setShowPickerForMealType(null);
                       }
                     }}
-                    onBlur={() => setAddingMealType(null)}
+                    onBlur={() => {
+                      setAddingMealType(null);
+                      setShowPickerForMealType(null);
+                    }}
                     autoFocus
                   >
                     <option value="">Choose recipe…</option>
@@ -166,6 +172,28 @@ export function DayView({ date }: DayViewProps) {
                       </option>
                     ))}
                   </select>
+                ) : isAdding ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowPickerForMealType(mealType)}
+                      className="rounded-[var(--radius)] border px-3 py-2 text-sm font-medium"
+                      style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+                    >
+                      From my recipes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate({ to: "/discover", search: { addToDate: date, mealType } });
+                        setAddingMealType(null);
+                      }}
+                      className="rounded-[var(--radius)] border px-3 py-2 text-sm font-medium"
+                      style={{ borderColor: "var(--border)", color: "var(--text)" }}
+                    >
+                      Discover
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="button"
