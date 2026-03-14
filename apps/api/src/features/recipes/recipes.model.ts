@@ -20,5 +20,6 @@ const recipeSchema = new mongoose.Schema(
 );
 
 recipeSchema.index({ createdBy: 1 });
+recipeSchema.index({ publishedAt: 1, createdAt: -1 });
 
 export const Recipe = mongoose.model("Recipe", recipeSchema);

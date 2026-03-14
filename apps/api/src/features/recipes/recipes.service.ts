@@ -44,6 +44,10 @@ function validateCreate(data: RecipeInput): void {
   }
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export const recipesService = {
   async list(userId: string) {
     return Recipe.find({ createdBy: userId }).sort({ createdAt: -1 }).lean();
@@ -67,6 +71,22 @@ export const recipesService = {
     const recipe = await Recipe.findById(id).populate("ingredients.ingredientId").lean();
     if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
     return recipe;
+  },
+
+  async discover(filters?: { search?: string; tags?: string[] }) {
+    const query: Record<string, unknown> = { publishedAt: { $ne: null } };
+    if (filters?.search?.trim()) {
+      const escaped = escapeRegex(filters.search.trim());
+      const re = new RegExp(escaped, "i");
+      query.$or = [{ title: re }, { description: re }];
+    }
+    if (filters?.tags != null && filters.tags.length > 0) {
+      query.tags = { $in: filters.tags };
+    }
+    return Recipe.find(query)
+      .sort({ publishedAt: -1 })
+      .populate("ingredients.ingredientId")
+      .lean();
   },
 
   async update(recipeId: string, userId: string, data: Partial<RecipeInput>) {
