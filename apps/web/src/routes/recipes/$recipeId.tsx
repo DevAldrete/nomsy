@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api-client";
 import { RequireAuth } from "../../components/RequireAuth";
 import { useAuth } from "../../features/auth/hooks/useAuth";
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
+import { useFavorites } from "../../features/discover/hooks/useFavorites";
 
 export const Route = createFileRoute("/recipes/$recipeId")({
   component: () => (
@@ -19,6 +21,8 @@ type RecipeDetail = {
   prepTimeMinutes?: number;
   cookTimeMinutes?: number;
   tags?: string[];
+  createdBy?: string;
+  publishedAt?: string | null;
   ingredients?: { ingredientId: { name: string; unit: string }; quantity: number }[];
 };
 
@@ -26,10 +30,15 @@ function RecipeDetailPage() {
   const { recipeId } = Route.useParams();
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { user } = useCurrentUser();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [savingCopy, setSavingCopy] = useState(false);
+  const [addingToCalendar, setAddingToCalendar] = useState(false);
 
   useEffect(() => {
     api<RecipeDetail>(`/recipes/${recipeId}`)
@@ -59,6 +68,10 @@ function RecipeDetailPage() {
       </div>
     );
   }
+  const isOwner = user?.id && recipe?.createdBy && user.id === recipe.createdBy;
+  const isPublished = Boolean(recipe?.publishedAt);
+  const showDiscoveryActions = !isOwner && isPublished;
+
   const handleDelete = async () => {
     if (!window.confirm("Delete this recipe? This cannot be undone.")) return;
     setDeleting(true);
@@ -71,6 +84,80 @@ function RecipeDetailPage() {
       setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    const token = getToken();
+    if (!token) return;
+    setPublishing(true);
+    try {
+      await api(`/recipes/${recipeId}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ publishedAt: new Date().toISOString() }),
+      });
+      setRecipe((prev) => (prev ? { ...prev, publishedAt: new Date().toISOString() } : null));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Publish failed");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    const token = getToken();
+    if (!token) return;
+    setPublishing(true);
+    try {
+      await api(`/recipes/${recipeId}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ publishedAt: null }),
+      });
+      setRecipe((prev) => (prev ? { ...prev, publishedAt: null } : null));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unpublish failed");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleSaveToMyRecipes = async () => {
+    const token = getToken();
+    if (!token) return;
+    setSavingCopy(true);
+    try {
+      const newRecipe = await api<{ _id: string }>(`/recipes/${recipeId}/copy`, { method: "POST", token });
+      navigate({ to: "/recipes/$recipeId", params: { recipeId: newRecipe._id } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSavingCopy(false);
+    }
+  };
+
+  const handleAddToCalendar = async () => {
+    const token = getToken();
+    if (!token) return;
+    const date = prompt("Date (YYYY-MM-DD):");
+    const mealType = prompt("Meal (breakfast, lunch, dinner, snack):");
+    if (!date || !mealType) return;
+    setAddingToCalendar(true);
+    try {
+      let rid = recipeId;
+      try {
+        const newRecipe = await api<{ _id: string }>(`/recipes/${recipeId}/copy`, { method: "POST", token });
+        rid = newRecipe._id;
+      } catch {
+        // might already own
+      }
+      await api("/calendar", { method: "POST", token, body: JSON.stringify({ recipeId: rid, date, mealType }) });
+      navigate({ to: "/calendar/day/$date", params: { date } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Add to calendar failed");
+    } finally {
+      setAddingToCalendar(false);
     }
   };
 
@@ -87,24 +174,79 @@ function RecipeDetailPage() {
             {recipe.title}
           </h1>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link
-            to="/recipes/$recipeId/edit"
-            params={{ recipeId }}
-            className="rounded-lg border px-3 py-2 text-sm font-medium"
-            style={{ borderColor: "var(--border)", color: "var(--text)" }}
-          >
-            Edit
-          </Link>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="rounded-lg border px-3 py-2 text-sm font-medium"
-            style={{ borderColor: "var(--error)", color: "var(--error)" }}
-          >
-            {deleting ? "Deleting…" : "Delete recipe"}
-          </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {isOwner && (
+            <>
+              <Link
+                to="/recipes/$recipeId/edit"
+                params={{ recipeId }}
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                Edit
+              </Link>
+              {isPublished ? (
+                <button
+                  type="button"
+                  onClick={handleUnpublish}
+                  disabled={publishing}
+                  className="rounded-lg border px-3 py-2 text-sm font-medium"
+                  style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                >
+                  {publishing ? "…" : "Unpublish"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePublish}
+                  disabled={publishing}
+                  className="rounded-lg border px-3 py-2 text-sm font-medium"
+                  style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+                >
+                  {publishing ? "…" : "Publish"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={{ borderColor: "var(--error)", color: "var(--error)" }}
+              >
+                {deleting ? "Deleting…" : "Delete recipe"}
+              </button>
+            </>
+          )}
+          {showDiscoveryActions && (
+            <>
+              <button
+                type="button"
+                onClick={handleSaveToMyRecipes}
+                disabled={savingCopy}
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
+              >
+                {savingCopy ? "Saving…" : "Save to my recipes"}
+              </button>
+              <button
+                type="button"
+                onClick={() => (isFavorite(recipeId) ? removeFavorite(recipeId) : addFavorite(recipeId))}
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                {isFavorite(recipeId) ? "Unfavorite" : "Favorite"}
+              </button>
+              <button
+                type="button"
+                onClick={handleAddToCalendar}
+                disabled={addingToCalendar}
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                {addingToCalendar ? "Adding…" : "Add to calendar"}
+              </button>
+            </>
+          )}
         </div>
       </div>
       <div className="animate-in opacity-0">
