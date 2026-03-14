@@ -15,6 +15,9 @@ const recipeSchema = new mongoose.Schema(
     ],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     publishedAt: { type: Date, default: null },
+    likesCount: { type: Number, default: 0 },
+    starsSum: { type: Number, default: 0 },
+    starsCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
