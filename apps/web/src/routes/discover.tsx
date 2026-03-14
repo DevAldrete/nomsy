@@ -2,9 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { RequireAuth } from "../components/RequireAuth";
 import { useDiscover } from "../features/discover/hooks/useDiscover";
-import { RecipeCard } from "../features/recipes/components/RecipeCard";
+import { useFavorites } from "../features/discover/hooks/useFavorites";
+import { DiscoverRecipeCard } from "../features/discover/components/DiscoverRecipeCard";
 
 export const Route = createFileRoute("/discover")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    addToDate: typeof search.addToDate === "string" ? search.addToDate : undefined,
+    mealType: typeof search.mealType === "string" ? search.mealType : undefined,
+  }),
   component: () => (
     <RequireAuth>
       <DiscoverPage />
@@ -18,6 +23,8 @@ function DiscoverPage() {
   const { recipes, loading, error } = useDiscover(
     submittedSearch ? { search: submittedSearch } : undefined
   );
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { addToDate, mealType } = Route.useSearch();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +39,11 @@ function DiscoverPage() {
       <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
         Browse published recipes from the community.
       </p>
+      {addToDate && mealType && (
+        <p className="mt-2 text-xs" style={{ color: "var(--accent)" }}>
+          Add to calendar will use {addToDate} · {mealType}
+        </p>
+      )}
       <form onSubmit={handleSearch} className="mt-4">
         <div className="flex gap-2">
           <input
@@ -64,13 +76,14 @@ function DiscoverPage() {
       {!loading && !error && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recipes.map((r) => (
-            <RecipeCard
+            <DiscoverRecipeCard
               key={r._id}
-              id={r._id}
-              title={r.title}
-              description={r.description}
-              prepMin={r.prepTimeMinutes}
-              cookMin={r.cookTimeMinutes}
+              recipe={r}
+              addToDate={addToDate}
+              mealType={mealType}
+              isFavorite={isFavorite(r._id)}
+              onFavorite={addFavorite}
+              onUnfavorite={removeFavorite}
             />
           ))}
         </div>
