@@ -42,3 +42,9 @@ export async function deleteRecipe(req: Request, res: Response): Promise<void> {
   await recipesService.delete(req.params.id, userId);
   res.status(204).send();
 }
+
+export async function copyRecipe(req: Request, res: Response): Promise<void> {
+  const { userId } = (req as Request & { user: AuthUser }).user;
+  const recipe = await recipesService.copy(req.params.id, userId);
+  res.status(201).json(recipe);
+}

@@ -126,4 +126,22 @@ export const recipesService = {
     if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
     await Recipe.deleteOne({ _id: id });
   },
+
+  async copy(recipeId: string, userId: string) {
+    const recipe = await Recipe.findById(recipeId).lean();
+    if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    const newRecipe = await Recipe.create({
+      title: recipe.title,
+      description: recipe.description ?? "",
+      prepTimeMinutes: recipe.prepTimeMinutes ?? 0,
+      cookTimeMinutes: recipe.cookTimeMinutes ?? 0,
+      tags: recipe.tags ?? [],
+      ingredients: recipe.ingredients ?? [],
+      createdBy: userId,
+      publishedAt: null,
+    });
+    const populated = await Recipe.findById(newRecipe._id).populate("ingredients.ingredientId").lean();
+    if (!populated) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    return populated;
+  },
 };
