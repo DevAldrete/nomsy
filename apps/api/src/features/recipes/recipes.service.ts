@@ -89,7 +89,11 @@ export const recipesService = {
       .lean();
   },
 
-  async update(recipeId: string, userId: string, data: Partial<RecipeInput>) {
+  async update(
+    recipeId: string,
+    userId: string,
+    data: Partial<RecipeInput> & { publishedAt?: Date | null }
+  ) {
     const recipe = await Recipe.findOne({ _id: recipeId, createdBy: userId });
     if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
     if (data.prepTimeMinutes != null && (typeof data.prepTimeMinutes !== "number" || data.prepTimeMinutes < 0)) {
@@ -108,6 +112,7 @@ export const recipesService = {
     if (data.prepTimeMinutes !== undefined) updates.prepTimeMinutes = data.prepTimeMinutes;
     if (data.cookTimeMinutes !== undefined) updates.cookTimeMinutes = data.cookTimeMinutes;
     if (data.tags !== undefined) updates.tags = data.tags;
+    if (data.publishedAt !== undefined) updates.publishedAt = data.publishedAt;
     if (ingredients !== undefined) updates.ingredients = ingredients;
     const updated = await Recipe.findByIdAndUpdate(recipeId, { $set: updates }, { returnDocument: "after", runValidators: true })
       .populate("ingredients.ingredientId")

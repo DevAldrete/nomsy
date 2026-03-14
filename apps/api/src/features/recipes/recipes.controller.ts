@@ -14,6 +14,18 @@ export async function create(req: Request, res: Response): Promise<void> {
   res.status(201).json(recipe);
 }
 
+export async function discover(req: Request, res: Response): Promise<void> {
+  const search = (req.query.search as string)?.trim() || undefined;
+  const tagsParam = req.query.tags;
+  const tags = Array.isArray(tagsParam)
+    ? (tagsParam as string[]).filter(Boolean)
+    : typeof tagsParam === "string"
+      ? tagsParam.split(",").map((t) => t.trim()).filter(Boolean)
+      : undefined;
+  const recipes = await recipesService.discover({ search, tags });
+  res.json(recipes);
+}
+
 export async function getById(req: Request, res: Response): Promise<void> {
   const recipe = await recipesService.getById(req.params.id);
   res.json(recipe);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { list, create, getById, update, deleteRecipe } from "./recipes.controller.js";
+import { list, create, discover, getById, update, deleteRecipe } from "./recipes.controller.js";
 import { authMiddleware } from "../../lib/middleware/auth.middleware.js";
 
 const router = Router();
@@ -14,6 +14,7 @@ function asyncHandler(
 
 router.get("/", authMiddleware, asyncHandler(list));
 router.post("/", authMiddleware, asyncHandler(create));
+router.get("/discover", asyncHandler(discover));
 router.get("/:id", asyncHandler(getById));
 router.patch("/:id", authMiddleware, asyncHandler(update));
 router.delete("/:id", authMiddleware, asyncHandler(deleteRecipe));
