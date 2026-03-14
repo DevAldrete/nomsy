@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useCalendar } from "../hooks/useCalendar";
 import { useRecipes } from "../../recipes/hooks/useRecipes";
 
@@ -130,10 +131,19 @@ export function WeekView() {
             </tr>
           </thead>
           <tbody>
-            {weekDays.map((day) => (
+            {weekDays.map((day) => {
+              const dateStr = day.toISOString().slice(0, 10);
+              return (
               <tr key={day.toISOString()} className="border-b transition-colors hover:bg-[var(--surface-hover)]/50" style={{ borderColor: "var(--border)" }}>
                 <td className="sticky left-0 z-10 border-r bg-[var(--surface)] px-4 py-3 text-sm font-medium" style={{ borderColor: "var(--border)", color: "var(--text)" }}>
-                  {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                  <Link
+                    to="/calendar/day/$date"
+                    params={{ date: dateStr }}
+                    className="block font-medium transition-colors hover:text-[var(--accent)] hover:underline"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                  </Link>
                 </td>
                 {MEAL_TYPES.map((mealType) => {
                   const slotEntries = getEntriesFor(day, mealType);
@@ -197,7 +207,8 @@ export function WeekView() {
                   );
                 })}
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>
