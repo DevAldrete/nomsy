@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { authRoutes } from "./features/auth/auth.routes.js";
+import { usersRoutes } from "./features/users/users.routes.js";
 import { recipesRoutes } from "./features/recipes/recipes.routes.js";
 import { calendarRoutes } from "./features/calendar/calendar.routes.js";
 import { favoritesRoutes } from "./features/favorites/favorites.routes.js";
@@ -60,6 +61,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api", usersRoutes);
 app.use("/api/recipes", recipesRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/favorites", favoritesRoutes);
