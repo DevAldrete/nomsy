@@ -13,6 +13,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
+import { Route as CalendarIndexRouteImport } from './routes/calendar/index'
 import { Route as RecipesNewRouteImport } from './routes/recipes/new'
 import { Route as RecipesRecipeIdRouteImport } from './routes/recipes/$recipeId'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
@@ -37,6 +38,11 @@ const RecipesIndexRoute = RecipesIndexRouteImport.update({
   id: '/recipes/',
   path: '/recipes/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarIndexRoute = CalendarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CalendarRoute,
 } as any)
 const RecipesNewRoute = RecipesNewRouteImport.update({
   id: '/recipes/new',
@@ -66,21 +72,22 @@ const RecipesRecipeIdEditRoute = RecipesRecipeIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/calendar': typeof CalendarRoute
+  '/calendar': typeof CalendarRouteWithChildren
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
   '/recipes/new': typeof RecipesNewRoute
+  '/calendar/': typeof CalendarIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/calendar': typeof CalendarRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
   '/recipes/new': typeof RecipesNewRoute
+  '/calendar': typeof CalendarIndexRoute
   '/recipes': typeof RecipesIndexRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
@@ -88,11 +95,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
-  '/calendar': typeof CalendarRoute
+  '/calendar': typeof CalendarRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRouteWithChildren
   '/recipes/new': typeof RecipesNewRoute
+  '/calendar/': typeof CalendarIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
@@ -105,16 +113,17 @@ export interface FileRouteTypes {
     | '/register'
     | '/recipes/$recipeId'
     | '/recipes/new'
+    | '/calendar/'
     | '/recipes/'
     | '/recipes/$recipeId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/calendar'
     | '/login'
     | '/register'
     | '/recipes/$recipeId'
     | '/recipes/new'
+    | '/calendar'
     | '/recipes'
     | '/recipes/$recipeId/edit'
   id:
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/_auth/register'
     | '/recipes/$recipeId'
     | '/recipes/new'
+    | '/calendar/'
     | '/recipes/'
     | '/recipes/$recipeId/edit'
   fileRoutesById: FileRoutesById
@@ -133,7 +143,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
-  CalendarRoute: typeof CalendarRoute
+  CalendarRoute: typeof CalendarRouteWithChildren
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRouteWithChildren
   RecipesNewRoute: typeof RecipesNewRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
@@ -168,6 +178,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/recipes/'
       preLoaderRoute: typeof RecipesIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/calendar/': {
+      id: '/calendar/'
+      path: '/'
+      fullPath: '/calendar/'
+      preLoaderRoute: typeof CalendarIndexRouteImport
+      parentRoute: typeof CalendarRoute
     }
     '/recipes/new': {
       id: '/recipes/new'
@@ -219,6 +236,18 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface CalendarRouteChildren {
+  CalendarIndexRoute: typeof CalendarIndexRoute
+}
+
+const CalendarRouteChildren: CalendarRouteChildren = {
+  CalendarIndexRoute: CalendarIndexRoute,
+}
+
+const CalendarRouteWithChildren = CalendarRoute._addFileChildren(
+  CalendarRouteChildren,
+)
+
 interface RecipesRecipeIdRouteChildren {
   RecipesRecipeIdEditRoute: typeof RecipesRecipeIdEditRoute
 }
@@ -234,7 +263,7 @@ const RecipesRecipeIdRouteWithChildren = RecipesRecipeIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
-  CalendarRoute: CalendarRoute,
+  CalendarRoute: CalendarRouteWithChildren,
   RecipesRecipeIdRoute: RecipesRecipeIdRouteWithChildren,
   RecipesNewRoute: RecipesNewRoute,
   RecipesIndexRoute: RecipesIndexRoute,
