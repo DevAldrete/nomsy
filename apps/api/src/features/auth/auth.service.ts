@@ -8,7 +8,13 @@ export const authService = {
     const existing = await User.findOne({ email });
     if (existing) throw new AppError("Email already registered", 409, "AUTH_EMAIL_TAKEN");
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, passwordHash });
+    const displayName = email.split("@")[0] || "User";
+    const user = await User.create({
+      email,
+      passwordHash,
+      displayName,
+      avatar: "https://api.dicebear.com/7.x/initials/svg?seed=user",
+    });
     const token = signToken({ userId: user._id.toString() });
     return { token, user: { id: user._id.toString(), email: user.email } };
   },
