@@ -10,8 +10,10 @@ describe("RecipeLike Model", () => {
   beforeAll(async () => {
     await connectTestDB();
     await RecipeLike.deleteMany({});
+    await User.deleteMany({ email: /^like@/ });
+    await Recipe.deleteMany({ title: "Test Recipe" });
     user = await User.create({
-      email: "like@test.com",
+      email: `like-${Date.now()}@test.com`,
       passwordHash: "hash",
       displayName: "Like",
       avatar: "https://x.com/a.png",

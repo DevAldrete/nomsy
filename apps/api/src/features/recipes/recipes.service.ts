@@ -1,5 +1,7 @@
 import mongoose, { type Types } from "mongoose";
 import { Recipe } from "./recipes.model.js";
+import { RecipeLike } from "../likes/likes.model.js";
+import { RecipeStar } from "../stars/stars.model.js";
 import { AppError } from "../../lib/errors.js";
 import { findOrCreateIngredient } from "./ingredient.service.js";
 
@@ -109,6 +111,33 @@ export const recipesService = {
     if (!recipe)
       throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
     return recipe;
+  },
+
+  async getWithEngagement(
+    recipeId: string,
+    userId?: string,
+  ): Promise<Record<string, unknown> | null> {
+    const recipe = await Recipe.findById(recipeId).populate(
+      "ingredients.ingredientId",
+    );
+    if (!recipe) return null;
+
+    const recipeObj = recipe.toObject() as Record<string, unknown>;
+    const starsCount = (recipe as { starsCount?: number }).starsCount ?? 0;
+    const starsSum = (recipe as { starsSum?: number }).starsSum ?? 0;
+    recipeObj.averageStars =
+      starsCount > 0 ? starsSum / starsCount : null;
+
+    if (userId) {
+      const [like, star] = await Promise.all([
+        RecipeLike.findOne({ userId, recipeId }),
+        RecipeStar.findOne({ userId, recipeId }),
+      ]);
+      recipeObj.userHasLiked = !!like;
+      recipeObj.userStarRating = star?.rating ?? null;
+    }
+
+    return recipeObj;
   },
 
   async discover(filters?: { search?: string; tags?: string[] }) {

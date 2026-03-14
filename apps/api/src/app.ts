@@ -7,6 +7,8 @@ import { usersRoutes } from "./features/users/users.routes.js";
 import { recipesRoutes } from "./features/recipes/recipes.routes.js";
 import { calendarRoutes } from "./features/calendar/calendar.routes.js";
 import { favoritesRoutes } from "./features/favorites/favorites.routes.js";
+import { likesRoutes } from "./features/likes/likes.routes.js";
+import { starsRoutes } from "./features/stars/stars.routes.js";
 import { errorMiddleware } from "./lib/middleware/error.middleware.js";
 
 const app = express();
@@ -62,6 +64,8 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api", usersRoutes);
+app.use("/api", likesRoutes);
+app.use("/api", starsRoutes);
 app.use("/api/recipes", recipesRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/favorites", favoritesRoutes);

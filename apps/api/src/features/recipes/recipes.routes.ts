@@ -8,7 +8,10 @@ import {
   deleteRecipe,
   copyRecipe,
 } from "./recipes.controller.js";
-import { authMiddleware } from "../../lib/middleware/auth.middleware.js";
+import {
+  authMiddleware,
+  optionalAuthMiddleware,
+} from "../../lib/middleware/auth.middleware.js";
 import {
   validate,
   createRecipeSchema,
@@ -40,7 +43,7 @@ router.post(
   asyncHandler(create),
 );
 router.get("/discover", asyncHandler(discover));
-router.get("/:id", asyncHandler(getById));
+router.get("/:id", optionalAuthMiddleware, asyncHandler(getById));
 router.post("/:id/copy", authMiddleware, asyncHandler(copyRecipe));
 router.patch(
   "/:id",

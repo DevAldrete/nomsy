@@ -10,8 +10,10 @@ describe("RecipeStar Model", () => {
   beforeAll(async () => {
     await connectTestDB();
     await RecipeStar.deleteMany({});
+    await User.deleteMany({ email: /^star@/ });
+    await Recipe.deleteMany({ title: "Star Recipe" });
     user = await User.create({
-      email: "star@test.com",
+      email: `star-${Date.now()}@test.com`,
       passwordHash: "hash",
       displayName: "Star",
       avatar: "https://x.com/s.png",
