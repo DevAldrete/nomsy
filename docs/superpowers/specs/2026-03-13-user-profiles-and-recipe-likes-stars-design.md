@@ -31,10 +31,10 @@ interface UserProfile {
 
 **User Schema (updated):**
 
-- `displayName` (required, string)
-- `avatar` (required, string - URL)
-- `bio` (optional, string)
-- `username` (optional, string, unique)
+- `displayName` (required, string, max 50 chars)
+- `avatar` (required, string - URL, must be valid URL format)
+- `bio` (optional, string, max 500 chars)
+- `username` (optional, string, unique, 3-30 chars, alphanumeric + underscores)
 
 ### API Endpoints
 
@@ -42,13 +42,14 @@ interface UserProfile {
 
 **GET /api/users/:username**
 
+- **Requirement:** User must have a unique `username` set
 - Returns: `{ id, displayName, avatar, bio, username, createdAt, recipeCount }`
 - Returns 404 if user not found or has no published recipes
 - Only returns profile if user has at least one published recipe
 
 **GET /api/users/:username/recipes**
 
-- Query params: `page`, `limit`, `tag`, `sort` (recent, mostLiked, highestRated)
+- Query params: `page` (default: 1), `limit` (default: 20), `tag`, `sort` (recent, mostLiked, highestRated)
 - Returns: `{ recipes: Recipe[], total, page, limit }`
 - Only includes published recipes
 
@@ -68,13 +69,13 @@ interface UserProfile {
 **GET /api/profile/drafts**
 
 - Returns user's draft recipes (recipes without publishedAt)
-- Query params: `page`, `limit`
+- Query params: `page` (default: 1), `limit` (default: 20)
 
 **GET /api/profile/favorites**
 
-- Returns user's favorited recipes
-- Reuses existing favorites system
-- Query params: `page`, `limit`
+- Returns user's favorited recipes using the existing UserFavorite collection
+- This is separate from "likes" - favorites are a user-curated collection, likes are public engagement
+- Query params: `page` (default: 1), `limit` (default: 20)
 
 ### Frontend Routes
 
@@ -200,5 +201,13 @@ Add sort options to `/discover`:
 
 1. **Database**: Run migrations to add new fields to User and Recipe schemas
 2. **Caching**: Consider caching averageStars calculation for performance
-3. **Validation**: Validate star rating is 1-5, username format (alphanumeric + underscores)
+3. **Validation**: Validate star rating is 1-5, username format (alphanumeric + underscores, 3-30 chars)
 4. **Race conditions**: Use atomic updates for like/star counts to avoid race conditions
+5. **Deleted user handling**: When a user is deleted, cascade delete their RecipeLike and RecipeStar records. Update recipe counts atomically.
+6. **Rate limiting**: Apply rate limiting to like/star endpoints (e.g., max 100 actions per minute per user)
+7. **Self-interaction**: Users CAN like and star their own recipes (no restriction)
+
+### Migration Strategy
+
+- For existing users: displayName defaults to email username part, avatar defaults to generated placeholder
+- Existing recipes: likesCount, starsSum, starsCount default to 0
