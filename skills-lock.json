@@ -1,15 +1,14 @@
 {
   "version": 1,
-  "skills": {
-    "simple": {
-      "source": "roin-orca/skills",
-      "sourceType": "github",
-      "computedHash": "cfde9dde00c9b1f8934e0312440a5ae2ed76dbd81e49ba7433e0e63ea6551d13"
-    },
-    "using-superpowers": {
-      "source": "obra/superpowers",
-      "sourceType": "github",
-      "computedHash": "5ed84a512f8664cc440ff26b19a0087eae6b2979e9e79cb26366b7f7b134e758"
-    }
+  "skills": {},
+  "using-superpowers": {
+    "source": "obra/superpowers",
+    "sourceType": "github",
+    "computedHash": "5ed84a512f8664cc440ff26b19a0087eae6b2979e9e79cb26366b7f7b134e758"
+  },
+  "frontend-design": {
+    "source": "anthropics/skills",
+    "sourceType": "github",
+    "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
   }
 }

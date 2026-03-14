@@ -1,0 +1,104 @@
+import mongoose, { type Types } from "mongoose";
+import { Recipe } from "./recipes.model.js";
+import { AppError } from "../../lib/errors.js";
+import { findOrCreateIngredient } from "./ingredient.service.js";
+
+type IngredientInput = { ingredientId?: Types.ObjectId; quantity: number; unit?: string; name?: string };
+type RecipeInput = {
+  title: string;
+  description?: string;
+  prepTimeMinutes?: number;
+  cookTimeMinutes?: number;
+  tags?: string[];
+  ingredients?: IngredientInput[];
+};
+
+async function resolveIngredients(inputs: IngredientInput[]): Promise<{ ingredientId: Types.ObjectId; quantity: number }[]> {
+  const result: { ingredientId: Types.ObjectId; quantity: number }[] = [];
+  for (const ing of inputs) {
+    if (ing.name != null && ing.name.trim() !== "") {
+      const id = await findOrCreateIngredient(ing.name, ing.unit ?? "g");
+      result.push({ ingredientId: new mongoose.Types.ObjectId(id), quantity: Number(ing.quantity) || 0 });
+    } else if (ing.ingredientId) {
+      result.push({ ingredientId: ing.ingredientId, quantity: Number(ing.quantity) || 0 });
+    }
+  }
+  return result;
+}
+
+function validateCreate(data: RecipeInput): void {
+  if (!data.title || typeof data.title !== "string" || !data.title.trim()) {
+    throw new AppError("Title is required", 400, "VALIDATION_ERROR");
+  }
+  if (data.prepTimeMinutes != null && (typeof data.prepTimeMinutes !== "number" || data.prepTimeMinutes < 0)) {
+    throw new AppError("prepTimeMinutes must be a non-negative number", 400, "VALIDATION_ERROR");
+  }
+  if (data.cookTimeMinutes != null && (typeof data.cookTimeMinutes !== "number" || data.cookTimeMinutes < 0)) {
+    throw new AppError("cookTimeMinutes must be a non-negative number", 400, "VALIDATION_ERROR");
+  }
+  if (data.ingredients != null && data.ingredients.length > 0) {
+    const hasValid = data.ingredients.some((i) => (i.name != null && i.name.trim() !== "") || i.ingredientId);
+    if (!hasValid) {
+      throw new AppError("At least one ingredient must have a name", 400, "VALIDATION_ERROR");
+    }
+  }
+}
+
+export const recipesService = {
+  async list(userId: string) {
+    return Recipe.find({ createdBy: userId }).sort({ createdAt: -1 }).lean();
+  },
+
+  async create(userId: string, data: RecipeInput) {
+    validateCreate(data);
+    let ingredients: { ingredientId: Types.ObjectId; quantity: number }[] | undefined;
+    if (data.ingredients != null && data.ingredients.length > 0) {
+      ingredients = await resolveIngredients(data.ingredients);
+    }
+    const { ingredients: _i, ...rest } = data;
+    return Recipe.create({
+      ...rest,
+      ...(ingredients != null && ingredients.length > 0 ? { ingredients } : {}),
+      createdBy: userId,
+    });
+  },
+
+  async getById(id: string) {
+    const recipe = await Recipe.findById(id).populate("ingredients.ingredientId").lean();
+    if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    return recipe;
+  },
+
+  async update(recipeId: string, userId: string, data: Partial<RecipeInput>) {
+    const recipe = await Recipe.findOne({ _id: recipeId, createdBy: userId });
+    if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    if (data.prepTimeMinutes != null && (typeof data.prepTimeMinutes !== "number" || data.prepTimeMinutes < 0)) {
+      throw new AppError("prepTimeMinutes must be a non-negative number", 400, "VALIDATION_ERROR");
+    }
+    if (data.cookTimeMinutes != null && (typeof data.cookTimeMinutes !== "number" || data.cookTimeMinutes < 0)) {
+      throw new AppError("cookTimeMinutes must be a non-negative number", 400, "VALIDATION_ERROR");
+    }
+    let ingredients: { ingredientId: Types.ObjectId; quantity: number }[] | undefined;
+    if (data.ingredients != null) {
+      ingredients = data.ingredients.length > 0 ? await resolveIngredients(data.ingredients) : [];
+    }
+    const updates: Record<string, unknown> = {};
+    if (data.title !== undefined) updates.title = data.title;
+    if (data.description !== undefined) updates.description = data.description;
+    if (data.prepTimeMinutes !== undefined) updates.prepTimeMinutes = data.prepTimeMinutes;
+    if (data.cookTimeMinutes !== undefined) updates.cookTimeMinutes = data.cookTimeMinutes;
+    if (data.tags !== undefined) updates.tags = data.tags;
+    if (ingredients !== undefined) updates.ingredients = ingredients;
+    const updated = await Recipe.findByIdAndUpdate(recipeId, { $set: updates }, { returnDocument: "after", runValidators: true })
+      .populate("ingredients.ingredientId")
+      .lean();
+    if (!updated) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    return updated;
+  },
+
+  async delete(id: string, userId: string) {
+    const recipe = await Recipe.findOne({ _id: id, createdBy: userId });
+    if (!recipe) throw new AppError("Recipe not found", 404, "RECIPE_NOT_FOUND");
+    await Recipe.deleteOne({ _id: id });
+  },
+};

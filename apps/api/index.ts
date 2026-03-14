@@ -1,33 +1,27 @@
-import express from 'express';
-import cors from 'cors';
-import { Server } from 'socket.io';
-import mongoose from 'mongoose';
+import app from "./src/app.js";
+import { connectDb } from "./src/lib/db.js";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 3001;
+const MONGO_URI = process.env.MONGO_URI;
+const JWT_SECRET = process.env.JWT_SECRET;
 
-// Connect to the MongoDB from your docker-compose
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:secretpassword@localhost:27017/nomsydb?authSource=admin';
+if (!JWT_SECRET) {
+  console.error("Missing JWT_SECRET");
+  process.exit(1);
+}
+if (!MONGO_URI) {
+  console.error("Missing MONGO_URI");
+  process.exit(1);
+}
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('🚀 Connected to Nomsy DB'))
-  .catch(err => console.error('DB Connection Error:', err));
-
-const server = app.listen(3001, () => {
-  console.log('📡 API running on http://localhost:3001');
-});
-
-// Setup Socket.io for the "Real-time" Trello magic
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
-
-io.on('connection', (socket) => {
-  console.log('👤 User connected:', socket.id);
-
-  socket.on('card-move', (data) => {
-    // Broadcast to everyone else so they see the card move instantly
-    socket.broadcast.emit('card-moved', data);
+async function main() {
+  await connectDb(MONGO_URI);
+  app.listen(Number(PORT), () => {
+    console.log(`API running on http://localhost:${PORT}`);
   });
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });
