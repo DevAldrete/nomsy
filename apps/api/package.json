@@ -6,14 +6,20 @@
   "scripts": {
     "dev": "bun run --watch index.ts",
     "start": "bun run index.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10"
+    "@types/jsonwebtoken": "^9.0.10",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
+    "typescript-eslint": "^8.57.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -22,8 +28,11 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "zod": "^4.3.6"
   }
 }

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { CalendarEntry } from "./calendar.model.js";
 import { AppError } from "../../lib/errors.js";
 
-const mealTypes = ["breakfast", "lunch", "dinner", "snack"] as const;
+const _mealTypes = ["breakfast", "lunch", "dinner", "snack"] as const;
 
 export const calendarService = {
   async listWeek(userId: string, startDate: Date, endDate: Date) {
@@ -19,7 +19,7 @@ export const calendarService = {
     userId: string,
     recipeId: string,
     date: Date,
-    mealType: (typeof mealTypes)[number]
+    mealType: (typeof _mealTypes)[number],
   ) {
     return CalendarEntry.create({
       userId: new mongoose.Types.ObjectId(userId),
@@ -30,8 +30,12 @@ export const calendarService = {
   },
 
   async remove(id: string, userId: string) {
-    const entry = await CalendarEntry.findOne({ _id: id, userId: new mongoose.Types.ObjectId(userId) });
-    if (!entry) throw new AppError("Calendar entry not found", 404, "NOT_FOUND");
+    const entry = await CalendarEntry.findOne({
+      _id: id,
+      userId: new mongoose.Types.ObjectId(userId),
+    });
+    if (!entry)
+      throw new AppError("Calendar entry not found", 404, "NOT_FOUND");
     await CalendarEntry.deleteOne({ _id: id });
   },
 };

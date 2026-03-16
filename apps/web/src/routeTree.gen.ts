@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AuthRouteImport } from './routes/_auth'
@@ -20,9 +21,15 @@ import { Route as RecipesRecipeIdRouteImport } from './routes/recipes/$recipeId'
 import { Route as CalendarTodayRouteImport } from './routes/calendar/today'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AtUsernameRouteImport } from './routes/@/$username'
 import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes/$recipeId.edit'
 import { Route as CalendarDayDateRouteImport } from './routes/calendar/day.$date'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiscoverRoute = DiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
@@ -77,6 +84,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
+const AtUsernameRoute = AtUsernameRouteImport.update({
+  id: '/@/$username',
+  path: '/@/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecipesRecipeIdEditRoute = RecipesRecipeIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -92,6 +104,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRouteWithChildren
   '/discover': typeof DiscoverRoute
+  '/profile': typeof ProfileRoute
+  '/@/$username': typeof AtUsernameRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -105,6 +119,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/profile': typeof ProfileRoute
+  '/@/$username': typeof AtUsernameRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -121,6 +137,8 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRouteWithChildren
   '/discover': typeof DiscoverRoute
+  '/profile': typeof ProfileRoute
+  '/@/$username': typeof AtUsernameRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/calendar/today': typeof CalendarTodayRoute
@@ -137,6 +155,8 @@ export interface FileRouteTypes {
     | '/'
     | '/calendar'
     | '/discover'
+    | '/profile'
+    | '/@/$username'
     | '/login'
     | '/register'
     | '/calendar/today'
@@ -150,6 +170,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/discover'
+    | '/profile'
+    | '/@/$username'
     | '/login'
     | '/register'
     | '/calendar/today'
@@ -165,6 +187,8 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/calendar'
     | '/discover'
+    | '/profile'
+    | '/@/$username'
     | '/_auth/login'
     | '/_auth/register'
     | '/calendar/today'
@@ -181,6 +205,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRouteWithChildren
   DiscoverRoute: typeof DiscoverRoute
+  ProfileRoute: typeof ProfileRoute
+  AtUsernameRoute: typeof AtUsernameRoute
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRouteWithChildren
   RecipesNewRoute: typeof RecipesNewRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
@@ -188,6 +214,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/discover': {
       id: '/discover'
       path: '/discover'
@@ -265,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/@/$username': {
+      id: '/@/$username'
+      path: '/@/$username'
+      fullPath: '/@/$username'
+      preLoaderRoute: typeof AtUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recipes/$recipeId/edit': {
       id: '/recipes/$recipeId/edit'
       path: '/edit'
@@ -327,6 +367,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRouteWithChildren,
   DiscoverRoute: DiscoverRoute,
+  ProfileRoute: ProfileRoute,
+  AtUsernameRoute: AtUsernameRoute,
   RecipesRecipeIdRoute: RecipesRecipeIdRouteWithChildren,
   RecipesNewRoute: RecipesNewRoute,
   RecipesIndexRoute: RecipesIndexRoute,

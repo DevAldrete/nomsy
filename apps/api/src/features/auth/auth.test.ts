@@ -5,9 +5,13 @@ import app from "../../app.js";
 let baseUrl: string = "http://127.0.0.1:0";
 let close: () => Promise<void> = async () => {};
 
+const testEmail = `auth-test-${Date.now()}@example.com`;
+
 beforeAll(async () => {
   process.env.JWT_SECRET = "test-secret";
-  process.env.MONGO_URI = process.env.TEST_MONGO_URI || "mongodb://admin:secretpassword@localhost:27017/nomsydb_test?authSource=admin";
+  process.env.MONGO_URI =
+    process.env.TEST_MONGO_URI ||
+    "mongodb://admin:secretpassword@localhost:27017/nomsydb_test?authSource=admin";
   await connectDb(process.env.MONGO_URI);
   const server = app.listen(0);
   const addr = server.address();
@@ -27,19 +31,28 @@ test("POST /api/auth/register returns 201 and token", async () => {
   const res = await fetch(`${baseUrl}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "auth-test@example.com", password: "password123" }),
+    body: JSON.stringify({
+      email: testEmail,
+      password: "password123",
+    }),
   });
   expect(res.status).toBe(201);
-  const data = (await res.json()) as { token?: string; user?: { id: string; email: string } };
+  const data = (await res.json()) as {
+    token?: string;
+    user?: { id: string; email: string };
+  };
   expect(typeof data.token).toBe("string");
-  expect(data.user?.email).toBe("auth-test@example.com");
+  expect(data.user?.email).toBe(testEmail);
 });
 
 test("POST /api/auth/register with same email returns 409", async () => {
   const res = await fetch(`${baseUrl}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "auth-test@example.com", password: "other" }),
+    body: JSON.stringify({
+      email: testEmail,
+      password: "pass123",
+    }),
   });
   expect(res.status).toBe(409);
   const data = (await res.json()) as { code?: string };
@@ -50,19 +63,25 @@ test("POST /api/auth/login returns 200 and token", async () => {
   const res = await fetch(`${baseUrl}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "auth-test@example.com", password: "password123" }),
+    body: JSON.stringify({
+      email: testEmail,
+      password: "password123",
+    }),
   });
   expect(res.status).toBe(200);
-  const data = (await res.json()) as { token?: string; user?: { email: string } };
+  const data = (await res.json()) as {
+    token?: string;
+    user?: { email: string };
+  };
   expect(typeof data.token).toBe("string");
-  expect(data.user?.email).toBe("auth-test@example.com");
+  expect(data.user?.email).toBe(testEmail);
 });
 
 test("POST /api/auth/login invalid credentials returns 401", async () => {
   const res = await fetch(`${baseUrl}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "auth-test@example.com", password: "wrong" }),
+    body: JSON.stringify({ email: testEmail, password: "wrong" }),
   });
   expect(res.status).toBe(401);
   const data = (await res.json()) as { code?: string };
@@ -73,7 +92,10 @@ test("GET /api/auth/me with valid token returns user", async () => {
   const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "auth-test@example.com", password: "password123" }),
+    body: JSON.stringify({
+      email: testEmail,
+      password: "password123",
+    }),
   });
   const { token } = (await loginRes.json()) as { token: string };
   const meRes = await fetch(`${baseUrl}/api/auth/me`, {
@@ -81,7 +103,7 @@ test("GET /api/auth/me with valid token returns user", async () => {
   });
   expect(meRes.status).toBe(200);
   const me = (await meRes.json()) as { id: string; email: string };
-  expect(me.email).toBe("auth-test@example.com");
+  expect(me.email).toBe(testEmail);
 });
 
 test("GET /api/auth/me without token returns 401", async () => {
